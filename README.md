@@ -1,74 +1,74 @@
-🧠 Natural Language to SQL Query Agent
-🎯 Project Overview
+# Natural Language to SQL Query Agent
 
-This project demonstrates a sophisticated Natural Language to SQL Query Agent capable of understanding plain English questions and translating them into SQL queries to retrieve relevant data from a database. It also converts query results into human-readable responses—providing a seamless, conversational interface for database interaction.
+## 🎯 Project Overview
 
-🚀 Key Features
+This project demonstrates a sophisticated **Natural Language to SQL Query Agent** that can understand human questions in plain English and convert them into SQL queries to extract information from a database. The system then provides natural language answers based on the database results, creating a seamless conversational interface for database interactions.
 
-Natural Language Understanding: Converts user questions into SQL queries
+## 🚀 Key Features
 
-Multi-Model Support: Supports OpenAI GPT-4 and Hugging Face models
+- **Natural Language Understanding**: Converts human questions to SQL queries
+- **Multi-Model Support**: Works with both OpenAI GPT-4 and Hugging Face models
+- **Intelligent Query Generation**: Automatically generates optimized SQL queries
+- **Natural Language Responses**: Converts database results back to human-readable answers
+- **Database Schema Awareness**: Understands table structures and relationships
+- **Flexible Architecture**: Supports different LLM providers and database types
 
-Intelligent Query Generation: Generates optimized SQL statements
+## 🛠️ Technologies Used
 
-Human-Readable Responses: Translates SQL results into natural language
+### Core Framework
 
-Schema Awareness: Understands database tables and relationships
+- **LangChain**: Modern framework for building LLM applications
+- **LangChain Core**: Core abstractions and interfaces
+- **LangChain Community**: Community-maintained integrations
+- **LangChain OpenAI**: OpenAI model integrations
+- **LangChain Hugging Face**: Hugging Face model integrations
 
-Modular Architecture: Supports different LLM providers and database engines
+### Database & Utilities
 
-🛠️ Technologies Used
-Frameworks
+- **SQLite**: Lightweight, serverless database engine
+- **Chinook Database**: Sample music store database for demonstration
+- **SQLDatabase**: LangChain utility for database operations
 
-LangChain: Framework for building LLM-powered applications
+### Environment & Configuration
 
-LangChain Core/Community/OpenAI/HuggingFace: Model and integration modules
+- **Python-dotenv**: Environment variable management
+- **Jupyter Notebooks**: Interactive development and testing
 
-Databases
+### AI/ML Models
 
-SQLite: Lightweight database engine
+- **OpenAI GPT-4**: Primary language model for query generation
+- **Hugging Face Models**: Alternative model support (Qwen2.5-VL-7B-Instruct)
 
-Chinook Database: Sample music store database
+## 🏗️ Architecture & Components
 
-SQLDatabase (LangChain): Utility for DB operations
+### 1. Database Connection Layer
 
-Utilities
-
-Python-dotenv: Environment variable management
-
-Jupyter Notebooks: For development and testing
-
-Models
-
-OpenAI GPT-4: Default LLM for SQL generation and response
-
-Hugging Face (Qwen2.5-VL-7B-Instruct): Alternative open-source LLM
-
-🏗️ Architecture & Components
-1. Database Connection Layer
+```python
 db = SQLDatabase.from_uri("sqlite:///Chinook.db", sample_rows_in_table_info=0)
+```
 
+- Establishes connection to SQLite database
+- Configures schema information retrieval
+- Provides foundation for all database operations
 
-Connects to SQLite database
+### 2. Schema Management Functions
 
-Retrieves schema details
-
-Enables query execution
-
-2. Schema Management
+```python
 def get_schema(_):
     return db.get_table_info()
 
 def run_query(query):
-    print(f'Query being run: {query}\n')
+    print(f'Query being run: {query} \n\n')
     return db.run(query)
+```
 
+- **`get_schema()`**: Retrieves complete database schema information
+- **`run_query()`**: Executes SQL queries and returns results
+- Enables the system to understand database structure and relationships
 
-get_schema(): Fetches database schema
+### 3. Language Model Management
 
-run_query(): Executes a given SQL query
-
-3. Language Model Selection
+```python
 def get_llm(load_from_hugging_face=False):
     if load_from_hugging_face:
         llm = HuggingFaceEndpoint(
@@ -79,13 +79,15 @@ def get_llm(load_from_hugging_face=False):
         return ChatHuggingFace(llm=llm)
 
     return ChatOpenAI(model="gpt-4", temperature=0.0)
+```
 
+- **Flexible Model Selection**: Choose between OpenAI and Hugging Face models
+- **Temperature Control**: Set to 0.0 for deterministic, consistent outputs
+- **Provider Configuration**: Supports different Hugging Face providers
 
-Choose between OpenAI or Hugging Face
+### 4. SQL Query Generation Chain
 
-Temperature set to 0.0 for deterministic outputs
-
-4. SQL Query Generation Chain
+```python
 def write_sql_query(llm):
     template = """Based on the table schema below, write a SQL query that would answer the user's question:
     {schema}
@@ -94,8 +96,8 @@ def write_sql_query(llm):
     SQL Query:"""
 
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "Given an input question, convert it to a SQL query. No preamble. "
-        "Return only the SQL query—no quotes, no comments, no extra text."),
+        ("system", "Given an input question, convert it to a SQL query. No pre-amble. "
+        "Please do not return anything else apart from the SQL query, no prefix aur suffix quotes, no sql keyword, nothing please"),
         ("human", template),
     ])
 
@@ -105,13 +107,16 @@ def write_sql_query(llm):
         | llm
         | StrOutputParser()
     )
+```
 
+- **Prompt Engineering**: Carefully crafted prompts for SQL generation
+- **Schema Integration**: Automatically includes database schema in prompts
+- **Chain Composition**: Uses LangChain's RunnablePassthrough for data flow
+- **Output Parsing**: Ensures clean SQL query extraction
 
-Structured prompting ensures correct and clean SQL generation
+### 5. Natural Language Response Generation
 
-Schema-aware LLM prompting for accuracy
-
-5. Natural Language Answer Generation
+```python
 def answer_user_query(query, llm):
     template = """Based on the table schema below, question, sql query, and sql response, write a natural language response:
     {schema}
@@ -123,7 +128,7 @@ def answer_user_query(query, llm):
     prompt_response = ChatPromptTemplate.from_messages([
         (
             "system",
-            "Given a question and SQL response, convert it to a natural language answer. No preamble.",
+            "Given an input question and SQL response, convert it to a natural language answer. No pre-amble.",
         ),
         ("human", template),
     ])
@@ -139,196 +144,259 @@ def answer_user_query(query, llm):
     )
 
     return full_chain.invoke({"question": query})
+```
 
+- **Multi-Stage Processing**: Combines query generation, execution, and response formatting
+- **Chain Orchestration**: Coordinates multiple LangChain components
+- **Context Preservation**: Maintains question context throughout the pipeline
+- **Natural Language Output**: Converts technical results to human-readable responses
 
-Combines all stages: question → SQL → result → answer
+## 🔄 Data Flow Architecture
 
-Provides final human-readable response
+```
+User Question → Schema Retrieval → LLM Query Generation → SQL Execution → LLM Response Generation → Natural Language Answer
+     ↓              ↓                    ↓                ↓                ↓                        ↓
+  "Give me tracks  Database Schema   SQL Query      Database Results   Formatted Response    "The tracks by the
+   by Audioslave"   (Table Info)    (JOIN, WHERE)   (Track Names)     (Natural Language)    artist Audioslave..."
+```
 
-🔄 Data Flow
-User Input → Schema Retrieval → SQL Query Generation → SQL Execution → Response Generation → Final Answer
-    ↓              ↓                   ↓                     ↓                   ↓                  ↓
-"Tracks by   → [Track, Artist] → SELECT ... JOIN ... → [Results] → "The tracks by Audioslave are..."
- Audioslave"
+## 📊 Database Schema (Chinook)
 
-📊 Chinook Database Overview
+The project uses the **Chinook Database**, a sample music store database with the following key tables:
 
-Tables used:
+- **Artist**: Music artists and bands
+- **Album**: Music albums linked to artists
+- **Track**: Individual music tracks linked to albums
+- **Genre**: Music genres
+- **Customer**: Store customers
+- **Employee**: Store employees
+- **Invoice**: Customer purchase records
+- **InvoiceLine**: Individual items in invoices
 
-Artist: Music artists and bands
+## 🧪 Example Queries & Use Cases
 
-Album: Albums linked to artists
+### 1. Simple Queries
 
-Track: Tracks linked to albums
-
-Genre: Music genres
-
-Customer: Music store customers
-
-Employee: Store staff
-
-Invoice: Purchase records
-
-InvoiceLine: Items in each invoice
-
-🧪 Example Use Cases
-1. Basic Query
+```python
 query = "Give me the name of 10 Artists"
-# → SELECT Name FROM Artist LIMIT 10
+# Generates: SELECT Name FROM Artist LIMIT 10
+```
 
-2. Multi-Field Query
+### 2. Multi-Column Queries
+
+```python
 query = "Give me the name and artist ID of 10 Artists"
-# → SELECT Name, ArtistId FROM Artist LIMIT 10
+# Generates: SELECT Name, ArtistId FROM Artist LIMIT 10
+```
 
-3. Filter by Foreign Key
+### 3. Foreign Key Queries
+
+```python
 query = "Give me 10 Albums by the Artist with ID 1"
-# → SELECT * FROM Album WHERE ArtistId = 1 LIMIT 10
+# Generates: SELECT * FROM Album WHERE ArtistId = 1 LIMIT 10
+```
 
-4. Table Join
+### 4. Table Joins
+
+```python
 query = "Give some Albums by the Artist name Audioslave"
-# → SELECT Album.* FROM Album JOIN Artist ON Album.ArtistId = Artist.ArtistId WHERE Artist.Name = 'Audioslave'
+# Generates: SELECT Album.* FROM Album JOIN Artist ON Album.ArtistId = Artist.ArtistId WHERE Artist.Name = 'Audioslave'
+```
 
-5. Multi-Level Join
+### 5. Complex Multi-Level Joins
+
+```python
 query = "Give some Tracks by the Artist name Audioslave"
-# → SELECT Track.Name FROM Track JOIN Album ON Track.AlbumId = Album.AlbumId JOIN Artist ON Album.ArtistId = Artist.ArtistId WHERE Artist.Name = 'Audioslave'
+# Generates: SELECT Track.Name FROM Track JOIN Album ON Track.AlbumId = Album.AlbumId JOIN Artist ON Album.ArtistId = Artist.ArtistId WHERE Artist.Name = 'Audioslave'
+```
 
-🚀 Getting Started
-Requirements
+## 🚀 Getting Started
 
-Python 3.8+
+### Prerequisites
 
-Jupyter Notebook/Lab
+- Python 3.8+
+- Jupyter Notebook or JupyterLab
+- Access to OpenAI API (for GPT-4) or Hugging Face models
 
-OpenAI or Hugging Face API access
+### Installation
 
-Installation
-git clone <repository-url>
-cd ttos
-pip install langchain-core langchain-community langchain-openai langchain-huggingface python-dotenv
+1. **Clone the repository**
 
-Configuration
-# .env file setup
-echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
+   ```bash
+   git clone <repository-url>
+   cd ttos
+   ```
 
-Run the Notebook
-jupyter notebook agent.ipynb
+2. **Install dependencies**
 
-🔧 Development Process
-Phase 1: Setup
+   ```bash
+   pip install langchain-core langchain-community langchain-openai langchain-huggingface python-dotenv
+   ```
 
-DB connection
+3. **Set up environment variables**
 
-Schema inspection
+   ```bash
+   # Create .env file
+   echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
+   ```
 
-Env config
+4. **Run the notebook**
+   ```bash
+   jupyter notebook agent.ipynb
+   ```
 
-Phase 2: Core Features
+### Configuration
 
-GPT-4 SQL generation
+- **OpenAI Setup**: Set your `OPENAI_API_KEY` in the `.env` file
+- **Hugging Face Setup**: Configure your preferred provider in the `get_llm()` function
+- **Database**: Ensure `Chinook.db` is in the project directory
 
-Prompting logic
+## 🔧 Development Process
 
-Query execution
+### Phase 1: Foundation Setup
 
-Phase 3: Expansion
+- Database connection establishment
+- Basic schema retrieval functions
+- Environment configuration
 
-Hugging Face model support
+### Phase 2: Core Functionality
 
-Response generation
+- LLM integration (OpenAI GPT-4)
+- SQL query generation pipeline
+- Basic prompt engineering
 
-LangChain orchestration
+### Phase 3: Advanced Features
 
-Phase 4: Testing
+- Hugging Face model support
+- Natural language response generation
+- Chain orchestration and data flow
 
-Query accuracy tests
+### Phase 4: Testing & Optimization
 
-Performance tuning
+- Query type validation
+- Response quality assessment
+- Performance optimization
 
-Error scenarios
+## 🎨 Design Patterns & Best Practices
 
-🎨 Best Practices & Patterns
+### 1. Chain of Responsibility
 
-Chain of Responsibility: Each component has a single job
+- Each component has a single responsibility
+- Clear separation of concerns
+- Easy to modify or extend individual components
 
-Dependency Injection: Easily switch models
+### 2. Dependency Injection
 
-Prompt Engineering: Clear, deterministic outputs
+- LLM models are injected into functions
+- Easy to switch between different providers
+- Testable and maintainable code
 
-Modular Design: Replaceable parts and testable functions
+### 3. Prompt Engineering
 
-🔍 Technical Challenges & Solutions
-1. SQL Accuracy
+- Carefully crafted system and human prompts
+- Clear instructions for consistent outputs
+- Minimal formatting requirements
 
-Issue: Incorrect SQL generation
+### 4. Error Handling
 
-Fix: Rich schema prompts, deterministic output, strict formatting
+- Graceful fallbacks for different scenarios
+- Clear error messages and debugging information
+- Robust database operation handling
 
-2. Model Support
+## 🔍 Technical Challenges & Solutions
 
-Issue: Multiple LLM APIs
+### Challenge 1: SQL Query Generation Accuracy
 
-Fix: Abstract model interfaces
+**Problem**: Ensuring generated SQL queries are syntactically correct and semantically accurate
+**Solution**:
 
-3. Chain Flow
+- Comprehensive schema information in prompts
+- Clear system instructions for SQL formatting
+- Temperature set to 0.0 for deterministic outputs
 
-Issue: Complex chaining
+### Challenge 2: Multi-Model Support
 
-Fix: LangChain RunnablePassthrough for clean data flow
+**Problem**: Supporting different LLM providers with varying APIs
+**Solution**:
 
-🔮 Future Improvements
+- Abstracted LLM interface through LangChain
+- Provider-agnostic configuration
+- Easy switching between models
 
-✅ SQL query validation and optimization
+### Challenge 3: Chain Orchestration
 
-✅ Error messaging and fallbacks
+**Problem**: Coordinating multiple processing stages
+**Solution**:
 
-✅ Query caching and schema caching
+- LangChain's RunnablePassthrough for data flow
+- Clear input/output contracts between components
+- Modular chain composition
 
-✅ Multi-DB support (PostgreSQL, MySQL)
+## 🚀 Future Enhancements
 
-✅ Web-based UI with query history
+### 1. Query Validation
 
-📚 Learning Outcomes
+- SQL syntax validation before execution
+- Query optimization suggestions
+- Performance analysis and recommendations
 
-LangChain chain orchestration
+### 2. Enhanced Error Handling
 
-Prompt engineering for LLMs
+- Better error messages for failed queries
+- Query suggestion alternatives
+- Fallback mechanisms for complex queries
 
-SQL query generation from NL
+### 3. Caching & Optimization
 
-Schema-based AI reasoning
+- Query result caching
+- Schema information caching
+- Response generation optimization
 
-OpenAI/HF integration
+### 4. Multi-Database Support
 
-Modular software architecture
+- PostgreSQL, MySQL, and other database types
+- Database-specific query optimization
+- Connection pooling and management
 
-🤝 Contributing
+### 5. User Interface
 
-You're welcome to contribute!
+- Web-based chat interface
+- Query history and favorites
+- Export functionality for results
 
-Focus areas:
+## 📚 Learning Outcomes
 
-More DB engines
+This project demonstrates several key concepts in modern AI application development:
 
-Improved prompts
+1. **LangChain Framework**: Understanding of chain composition and orchestration
+2. **Prompt Engineering**: Crafting effective prompts for specific tasks
+3. **Database Integration**: Seamless connection between AI systems and databases
+4. **Multi-Model Support**: Flexibility in choosing different AI providers
+5. **Natural Language Processing**: Converting between human language and technical queries
+6. **System Architecture**: Designing modular, maintainable AI applications
 
-Caching strategies
+## 🤝 Contributing
 
-UI development
+Contributions are welcome! Areas for improvement include:
 
-Testing and coverage
+- Enhanced error handling
+- Additional database support
+- Query optimization features
+- User interface development
+- Testing and documentation
 
-📄 License
+## 📄 License
 
-This project is open source under the MIT License
-.
+This project is open source and available under the [MIT License](LICENSE).
 
-🙏 Acknowledgments
+## 🙏 Acknowledgments
 
-LangChain – For their open-source framework
+- **LangChain Team**: For the excellent framework and documentation
+- **OpenAI**: For providing access to GPT-4
+- **Hugging Face**: For open-source model hosting
+- **Chinook Database**: For the sample database used in development
 
-OpenAI – For GPT-4 API access
+---
 
-Hugging Face – For open-source models
-
-Chinook Database – For a great SQL demo dataset
-
+**Note**: This project is designed for educational and demonstration purposes. For production use, consider implementing additional security measures, error handling, and performance optimizations.
+#
