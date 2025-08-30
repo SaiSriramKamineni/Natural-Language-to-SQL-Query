@@ -331,3 +331,4 @@ OpenAI – For GPT-4 API access
 Hugging Face – For open-source models
 
 Chinook Database – For a great SQL demo dataset
+
